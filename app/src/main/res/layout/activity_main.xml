@@ -15,4 +15,21 @@
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <Button
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:id="@+id/btnTest"
+      android:text="test"/>
+
+    <Button
+        android:id="@+id/btnJsonTest"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/btnTest"
+        android:layout_toLeftOf="@+id/btnTest"
+        android:text="JsonTest"
+        app:layout_constraintBaseline_toBaselineOf="@+id/btnTest"
+        app:layout_constraintLeft_toRightOf="@+id/btnTest"
+        android:layout_marginLeft="20dp" />
+
 </android.support.constraint.ConstraintLayout>
