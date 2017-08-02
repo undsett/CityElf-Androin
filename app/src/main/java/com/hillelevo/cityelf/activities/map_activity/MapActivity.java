@@ -60,6 +60,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -323,6 +324,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     switch (v.getId()) {
       case R.id.btnSearchAddress:
         //todo send request to status
+        hideKeyboard();
         if (nameOfStreet != null) {
           new JsonMessageTask(this)
               .execute(WebUrls.ADDRESS_URL + getFormatedAddressToJSON(nameOfStreet)
@@ -422,6 +424,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
       nameOfStreet = String.valueOf(item.description);
       mAutocompleteTextView.setText(shortAddress(nameOfStreet) + " ");
       mAutocompleteTextView.setSelection(mAutocompleteTextView.getText().length());
+      hideKeyboard();
+
 
       PendingResult<PlaceBuffer> placeResult = Places.GeoDataApi
           .getPlaceById(mGoogleApiClient, placeId);
@@ -520,5 +524,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     });
 
     builder.show();
+  }
+
+  private void hideKeyboard() {
+    InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+    inputMethodManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
   }
 }

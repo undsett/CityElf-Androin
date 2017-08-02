@@ -15,6 +15,7 @@ public class Constants {
     public static final String GET_ALL_FORECASTS = "test:8088/services/allforecasts/get?address=";
     public static final String AUTHORIZATION_URL = "test:8088/services/registration/login";
     public static final String REGISTRATION_URL = "test:8088/services/registration/register";
+    public static final String ADD_NEW_USER = "http://ec2-174-129-64-4.compute-1.amazonaws.com:8088/services/registration/adduser";
     public static final String UPDATE_USER_URL = "test:8088/services/users/updateUser";
     public static final String TEST_URL = "test:8088/maps/api/geocode/json?address=улица+Дерибасовская+Одесса+Одесская+область+Украина&key=AIzaSyCvCVjPsoJyCifJNO9EtlJuBW53eQHPHpY&language=ru";
     public static final String API_KEY_URL = "&key=AIzaSyCvCVjPsoJyCifJNO9EtlJuBW53eQHPHpY&language=ru";

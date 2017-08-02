@@ -11,6 +11,7 @@ import com.hillelevo.cityelf.data.UserLocalStore;
 import com.hillelevo.cityelf.webutils.JsonMessageTask;
 import com.hillelevo.cityelf.webutils.JsonMessageTask.JsonMessageResponse;
 
+import android.support.annotation.NonNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -65,8 +66,12 @@ public class SettingsActivity extends PreferenceActivity implements
     prefMgr.setSharedPreferencesName(Prefs.APP_PREFERENCES);
     prefMgr.setSharedPreferencesMode(Context.MODE_PRIVATE);
 
+    //HARDCODE
+    //UserLocalStore.saveBooleanToSharedPrefs(getApplicationContext(), Prefs.REGISTERED, true);
+
     addPreferencesFromResource(R.xml.preferences);
-    registered = UserLocalStore.loadBooleanFromSharedPrefs(getApplicationContext(), Prefs.REGISTERED);
+    registered = UserLocalStore
+        .loadBooleanFromSharedPrefs(getApplicationContext(), Prefs.REGISTERED);
     sharedPreferences = prefMgr.getSharedPreferences();
     category = (PreferenceCategory) findPreference("registered_user");
 
@@ -91,11 +96,17 @@ public class SettingsActivity extends PreferenceActivity implements
       category.removePreference(logout);
 
       emailPref = (EditTextPreference) findPreference("email");
-      emailPref.setSummary(getShortAddress(sharedPreferences.getString("email", "")));
+      emailPref.setSummary(getShortAddress(
+          UserLocalStore.loadStringFromSharedPrefs(getApplicationContext(), Prefs.EMAIL)));
+      emailPref.setText(getShortAddress(
+          (UserLocalStore.loadStringFromSharedPrefs(getApplicationContext(), Prefs.EMAIL))));
       emailPref.setOnPreferenceChangeListener(this);
 
       addressPref = (EditTextPreference) findPreference("address");
-      addressPref.setSummary(sharedPreferences.getString("address", ""));
+      addressPref.setSummary(getFormatedStreetName(
+          UserLocalStore.loadStringFromSharedPrefs(getApplicationContext(), Prefs.ADDRESS_1)));
+      addressPref.setText(getFormatedStreetName(
+          UserLocalStore.loadStringFromSharedPrefs(getApplicationContext(), Prefs.ADDRESS_1)));
       addressPref.setOnPreferenceChangeListener(this);
 
       exit = (Preference) findPreference("exit");
@@ -225,7 +236,18 @@ public class SettingsActivity extends PreferenceActivity implements
       emailPref.setText("");
       return "";
     }
+  }
 
+  private String getFormatedStreetName(String userAddress) {
+    if (userAddress != null && !userAddress.equals("")) {
+      if (userAddress.contains(", Одес")) {
+        return userAddress.substring(0, userAddress.indexOf(", Одес"));
+      } else {
+        return userAddress;
+      }
+    } else {
+      return "";
+    }
   }
 
   private static String firstWord(String firstPart) {
@@ -243,14 +265,14 @@ public class SettingsActivity extends PreferenceActivity implements
 
   @Override
   public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String _key) {
-    pref = findPreference(key);
+    pref = findPreference(_key);
     key = _key;
 
     if (pref instanceof EditTextPreference && !key.equals("password")) {
       EditTextPreference editTextPref = (EditTextPreference) pref;
       //// TODO: 27.07.17 send to server
       JSONObject updatePreferenceObject = new JSONObject();
-
+/*
       try {
         // HARDCODED!
         updatePreferenceObject.put("id", "13");
@@ -264,22 +286,21 @@ public class SettingsActivity extends PreferenceActivity implements
       String jsonData = updatePreferenceObject.toString();
 
       new JsonMessageTask(SettingsActivity.this).execute(WebUrls.UPDATE_USER_URL, "PUT", jsonData);
-
-      if (res.isEmpty()) {
-        String s = ((EditTextPreference) pref).getText();
-        if (key.equals("email")) {
-          pref.setSummary(getShortAddress(s));
-        } else if (key.equals("address")) {
-          pref.setSummary(s);
-        }
+*/
+      String s = ((EditTextPreference) pref).getText();
+      if (key.equals("email")) {
+        pref.setSummary(getShortAddress(s));
+      } else if (key.equals("address")) {
+        pref.setSummary(s);
       }
+
     }
   }
 
   @Override
 
   public void messageResponse(String output) {
-    res =output;
+    res = output;
 
     if (output.isEmpty()) {
 //   TODO

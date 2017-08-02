@@ -9,7 +9,6 @@
       <intent android:action="com.hillelevo.cityelf.AuthorizationActivity" />
     </Preference>
     <EditTextPreference
-      android:defaultValue="@string/default_email"
       android:key="email"
       android:maxLines="1"
       android:title="Электронная почта" />
@@ -20,7 +19,6 @@
       android:maxLines="1"
       android:title="Пароль" />
     <EditTextPreference
-      android:defaultValue="@string/default_street"
       android:key="address"
       android:title="Текущий адрес" />
     <Preference xmlns:android="http://schemas.android.com/apk/res/android"
