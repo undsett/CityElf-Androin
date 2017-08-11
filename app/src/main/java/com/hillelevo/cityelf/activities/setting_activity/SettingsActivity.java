@@ -1,7 +1,6 @@
 package com.hillelevo.cityelf.activities.setting_activity;
 
 
-import android.preference.PreferenceManager.OnActivityDestroyListener;
 import android.util.Base64;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
@@ -18,7 +17,6 @@ import com.hillelevo.cityelf.activities.AuthorizationActivity;
 import com.hillelevo.cityelf.activities.MainActivity;
 import com.hillelevo.cityelf.activities.map_activity.MapActivity;
 import com.hillelevo.cityelf.data.UserLocalStore;
-import com.hillelevo.cityelf.fragments.BottomDialogFragment;
 import com.hillelevo.cityelf.webutils.JsonMessageTask;
 import com.hillelevo.cityelf.webutils.JsonMessageTask.JsonMessageResponse;
 
@@ -30,7 +28,6 @@ import java.util.List;
 import java.util.Locale;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
@@ -50,18 +47,10 @@ import android.preference.PreferenceScreen;
 import android.preference.RingtonePreference;
 import android.preference.SwitchPreference;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatDelegate;
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
-
-import java.util.List;
-import java.util.Locale;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -82,6 +71,7 @@ public class SettingsActivity extends PreferenceActivity implements
   private Geocoder geocoder;
   private String userAddress;
   private Preference login;
+  private String oldPrefValue;
 
   private int PLACE_AUTOCOMPLETE_REQUEST_CODE = 1;
 
@@ -94,7 +84,6 @@ public class SettingsActivity extends PreferenceActivity implements
 
   private AppCompatDelegate delegate;
   private PreferenceCategory category;
-  boolean addressFromCoordonate;
 
 
   @Override
@@ -177,13 +166,11 @@ public class SettingsActivity extends PreferenceActivity implements
       category.removePreference(logout);
 
       emailPref = (EditTextPreference) findPreference("email");
-      emailPref.setSummary(getShortAddress(
-          UserLocalStore.loadStringFromSharedPrefs(getApplicationContext(), Prefs.EMAIL)));
-      emailPref.setText(getShortAddress(
-          (UserLocalStore.loadStringFromSharedPrefs(getApplicationContext(), Prefs.EMAIL))));
+      emailPref.setSummary(
+          UserLocalStore.loadStringFromSharedPrefs(getApplicationContext(), Prefs.EMAIL));
+      emailPref.setText(
+          (UserLocalStore.loadStringFromSharedPrefs(getApplicationContext(), Prefs.EMAIL)));
       emailPref.setOnPreferenceChangeListener(this);
-
-
 
       exit = (Preference) findPreference("exit");
       exit.setOnPreferenceClickListener(new OnPreferenceClickListener() {
@@ -235,13 +222,12 @@ public class SettingsActivity extends PreferenceActivity implements
         LatLng l = place.getLatLng();
         String lString = l.toString();
         String ltn = lString.substring(lString.indexOf(("(")) + 1, lString.indexOf(")"));
-        addressFromCoordonate = true;
 
+        key = "googleapi";
         new JsonMessageTask(this)
             .execute("http://maps.googleapis.com/maps/api/geocode/json?latlng=" + ltn
                     + "&sensor=true&language=ru",
-                Constants.GET);
-
+                Constants.GET, null);
 
       } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
         Status status = PlaceAutocomplete.getStatus(this, data);
@@ -340,7 +326,8 @@ public class SettingsActivity extends PreferenceActivity implements
         }
         break;
       case "email":
-        emailPref.setSummary(getShortAddress(emailPref.getText()));
+        //emailPref.setSummary(getShortAddress(emailPref.getText()));
+        oldPrefValue = UserLocalStore.loadStringFromSharedPrefs(getApplicationContext(), "email");
         break;
     }
     return true;
@@ -354,7 +341,7 @@ public class SettingsActivity extends PreferenceActivity implements
     return delegate;
   }
 
-
+/*
   private String getShortAddress(String address) {
     if (address.contains("@")) {
 
@@ -376,20 +363,22 @@ public class SettingsActivity extends PreferenceActivity implements
       return "";
     }
   }
-
+*/
   public static String getFormatedStreetName(String userAddress) {
     if (userAddress != null && !userAddress.equals("")) {
       if (userAddress.contains(", Одес")) {
         if (userAddress.contains("улица ")) {
-          return userAddress.substring(userAddress.indexOf("улица "), userAddress.indexOf(", Одес"));
-        } else if (userAddress.contains("вулиця ")){
-          return userAddress.substring(userAddress.indexOf("вулиця "), userAddress.indexOf(", Одес"));
+          return userAddress
+              .substring(userAddress.indexOf("улица "), userAddress.indexOf(", Одес"));
+        } else if (userAddress.contains("вулиця ")) {
+          return userAddress
+              .substring(userAddress.indexOf("вулиця "), userAddress.indexOf(", Одес"));
         }
       } else {
         return userAddress;
       }
     }
-      return "";
+    return "";
   }
 
   private static String firstWord(String firstPart) {
@@ -410,6 +399,7 @@ public class SettingsActivity extends PreferenceActivity implements
 
     pref = findPreference(_key);
     key = _key;
+
 
     if (pref instanceof EditTextPreference) {
       EditTextPreference editTextPref = (EditTextPreference) pref;
@@ -447,23 +437,76 @@ public class SettingsActivity extends PreferenceActivity implements
 
   @Override
   public void messageResponse(String output) {
-    if (output.isEmpty() && pref != null) {
-      String value = ((EditTextPreference) pref).getText();
-      if (key.equals("email")) {
-        pref.setSummary(value);
-      } else if (key.equals("password")) {
-        pref.setSummary(value);
-      }
-    } else if (output.isEmpty() && key.equals("address")) {
-      loadUserData();
-    } else if (key.equals("get_user")) {
-      saveAddressId(output);
+    if (output.contains("Error")) {
+      prefSetValue(oldPrefValue);
     }
+    switch (key) {
+      case "email":
+        if (output.isEmpty() && pref != null) {
+          String value = ((EditTextPreference) pref).getText();
+          pref.setSummary(value);
+        }
+        break;
+      case "password":
+        if (output.isEmpty() && pref != null) {
+          String value = ((EditTextPreference) pref).getText();
+          //prefSetValue(value);
+          pref.setSummary(value);
+        }
+        break;
+      case "address":
+        if (output.isEmpty()) {
+          loadUserData();
+        }
+        break;
+      case "get_user":
+        saveAddressId(output);
+        break;
+      case "googleapi":
+        key = null;
+        res = output;
+        checkAddress();
+//        updateUserAddress(userAddress);
+        break;
+    }
+  }
 
+  private void prefSetValue(String value) {
+
+    if (key.equals("email")) {
+      UserLocalStore
+          .saveStringToSharedPrefs(getApplicationContext(), Prefs.EMAIL,
+              value);
+      String authCertificate = "Basic " + Base64.encodeToString((value + ":" + UserLocalStore
+              .loadStringFromSharedPrefs(getApplicationContext(), Prefs.PASSWORD)).getBytes(),
+          Base64.URL_SAFE | Base64.NO_WRAP);
+      UserLocalStore.saveStringToSharedPrefs(getApplicationContext(), Prefs.AUTH_CERTIFICATE,
+          authCertificate);
+    }
+    if (key.equals("password")) {
+      UserLocalStore
+          .saveStringToSharedPrefs(getApplicationContext(), Prefs.PASSWORD, value);
+      String authCertificate = "Basic " + Base64.encodeToString((UserLocalStore
+          .loadStringFromSharedPrefs(getApplicationContext(), Prefs.EMAIL + ":" + value))
+          .getBytes(), Base64.URL_SAFE | Base64.NO_WRAP);
+      UserLocalStore.saveStringToSharedPrefs(getApplicationContext(), Prefs.AUTH_CERTIFICATE,
+          authCertificate);
+    }
+  }
+
+  private void checkAddress() {
+    userAddress = getAddressFromCoordinate();
+    if (userAddress.contains(", Одес")) {
+      addressPref.setSummary(getFormatedStreetName(userAddress));
+      updateUserAddress(userAddress);
+      UserLocalStore
+          .saveStringToSharedPrefs(getApplicationContext(), Prefs.ADDRESS_1, userAddress);
+    } else {
+      getToast(Constants.ERROR_INPUT_ADDRESS, Toast.LENGTH_LONG);
+    }
   }
 
   private void loadUserData() {
-    key = "get_user";
     int userId = UserLocalStore
         .loadIntFromSharedPrefs(getApplicationContext(), Prefs.USER_ID);
     try {
@@ -471,6 +514,7 @@ public class SettingsActivity extends PreferenceActivity implements
           .execute(WebUrls.GET_USERDATA_URL + URLEncoder.encode(String.valueOf(userId), "UTF-8"),
               Constants.GET, UserLocalStore
                   .loadStringFromSharedPrefs(getApplicationContext(), Prefs.AUTH_CERTIFICATE));
+      key = "get_user";
     } catch (UnsupportedEncodingException e) {
       e.printStackTrace();
     }
@@ -491,23 +535,10 @@ public class SettingsActivity extends PreferenceActivity implements
           .saveIntToSharedPrefs(getApplicationContext(), Prefs.ADDRESS_1_ID, addressId);
     } catch (JSONException e) {
       e.printStackTrace();
-      if (addressFromCoordonate) {
-        userAddress = getAddressFromCoordinate();
-      }
-      if (userAddress.contains(", Одес")) {
-        addressPref.setSummary(getFormatedStreetName(userAddress));
-        // send userUpdate address
-        updateUserAddress(userAddress);
-        UserLocalStore
-            .saveStringToSharedPrefs(getApplicationContext(), Prefs.ADDRESS_1, userAddress);
-      } else {
-        getToast(Constants.ERROR_INPUT_ADDRESS, Toast.LENGTH_LONG);
-      }
     }
   }
 
   private String getAddressFromCoordinate() {
-    addressFromCoordonate = false;
     String resultAddress = null;
     if (res != null && !res.contains("Error")) {
       JSONObject jsonObject = null;
