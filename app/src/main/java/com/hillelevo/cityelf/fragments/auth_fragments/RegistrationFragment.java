@@ -102,8 +102,8 @@ public class RegistrationFragment extends Fragment implements JsonMessageRespons
         } else if (password.equals("")) {
           Toast.makeText(getContext(), "Введите пароль", Toast.LENGTH_SHORT).show();
           break;
-        } else if (password.length() < 4) {
-          Toast.makeText(getContext(), "Пароль должен содержать больше четырех символов",
+        } else if (password.length() < 6) {
+          Toast.makeText(getContext(), "Пароль должен содержать больше шести символов",
               Toast.LENGTH_SHORT).show();
           break;
         } else {

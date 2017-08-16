@@ -51,7 +51,7 @@ public class CustomEditText extends DialogPreference implements OnClickListener 
     Observable.combineLatest(password1, password2, new Func2<String, String, Boolean>() {
       @Override
       public Boolean call(String s, String s2) {
-        if (!s2.equals(s) || s.isEmpty() || s2.isEmpty() || s.length() < 4 || s.length() < 4) {
+        if (!s2.equals(s) || s.isEmpty() || s2.isEmpty() || s.length() < 6 || s.length() < 6) {
           return true;
         } else {
           return false;

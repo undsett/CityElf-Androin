@@ -131,7 +131,9 @@ public class SettingsActivity extends PreferenceActivity implements
         return false;
       }
     });
-    String str3 = UserLocalStore.loadStringFromSharedPrefs(getApplicationContext(), Prefs.ADDRESS_1);
+    String str3 = UserLocalStore
+        .loadStringFromSharedPrefs(getApplicationContext(), Prefs.ADDRESS_1);
+
     addressPref.setSummary(getFormatedStreetName(
         UserLocalStore.loadStringFromSharedPrefs(getApplicationContext(), Prefs.ADDRESS_1)));
 
@@ -229,15 +231,17 @@ public class SettingsActivity extends PreferenceActivity implements
     if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE) {
       if (resultCode == RESULT_OK) {
         Place place = PlaceAutocomplete.getPlace(this, data);
-        LatLng l = place.getLatLng();
-        String lString = l.toString();
-        String ltn = lString.substring(lString.indexOf(("(")) + 1, lString.indexOf(")"));
+        String engNameStreet = String.valueOf(place.getAddress());
 
         key = "googleapi";
-        new JsonMessageTask(this)
-            .execute("http://maps.googleapis.com/maps/api/geocode/json?latlng=" + ltn
-                    + "&sensor=true&language=ru",
-                Constants.GET, null);
+        try {
+          new JsonMessageTask(this)
+              .execute("https://maps.googleapis.com/maps/api/geocode/json?address="
+                      + URLEncoder.encode(engNameStreet, "UTF-8")+"&key=AIzaSyCvCVjPsoJyCifJNO9EtlJuBW53eQHPHpY&language=ru",
+                  Constants.GET, null);
+        } catch (UnsupportedEncodingException e) {
+          e.printStackTrace();
+        }
 
       } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
         Status status = PlaceAutocomplete.getStatus(this, data);
@@ -274,21 +278,22 @@ public class SettingsActivity extends PreferenceActivity implements
       e.printStackTrace();
     }
   }
-/*
-  private String sendGeo(LatLng coordinate) {
-    List<Address> addresses = new ArrayList<>();
-    try {
-      addresses = geocoder.getFromLocation(coordinate.latitude, coordinate.longitude, 1);
-    } catch (IOException e) {
-      e.printStackTrace();
+
+  /*
+    private String sendGeo(LatLng coordinate) {
+      List<Address> addresses = new ArrayList<>();
+      try {
+        addresses = geocoder.getFromLocation(coordinate.latitude, coordinate.longitude, 1);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+
+      android.location.Address address = addresses.get(0);
+
+      String str = address.getAddressLine(0);
+      return address.getAddressLine(0);
     }
-
-    android.location.Address address = addresses.get(0);
-
-    String str = address.getAddressLine(0);
-    return address.getAddressLine(0);
-  }
-*/
+  */
   //btnBack home
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
